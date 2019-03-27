@@ -1,4 +1,6 @@
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/3.5.0/workbox-sw.js');
+importScripts('src/lib/idb.js');
+importScripts('src/js/utility.js');
 
 if (workbox) {
     console.log(`Yay! Workbox is loaded 🎉`);
@@ -10,7 +12,7 @@ if (workbox) {
   },
   {
     "url": "index.html",
-    "revision": "70dc3455988702963f6a78e5b1c3a2c6"
+    "revision": "69e3576a609fdf825edec844458cfaea"
   },
   {
     "url": "manifest.json",
@@ -38,7 +40,15 @@ if (workbox) {
   },
   {
     "url": "src/js/feed.js",
-    "revision": "1888ce1e3ba5f5a4771faae3d34ca5b4"
+    "revision": "a0f10ba6c690d40364ae4734b9784ed4"
+  },
+  {
+    "url": "src/js/utility.js",
+    "revision": "9626d951f9c9fb4fea37332dd2880e99"
+  },
+  {
+    "url": "src/lib/idb.js",
+    "revision": "eb4b9eb51d79d8d6e2c2c813bfa54b1f"
   },
   {
     "url": "src/lib/material.indigo-deep_orange.min.css",
@@ -122,6 +132,21 @@ if (workbox) {
                 })
             ]
         }));
+    
+        workbox.routing.registerRoute(API_URL, args => {
+            return fetch(args.event.request)
+                .then(response => {
+                    const clonedResponse = response.clone();
+                    clearAllData('selfies')
+                        .then(() => clonedResponse.json())
+                        .then(selfies => {
+                            for (const selfie in selfies) {
+                                writeData('selfies', selfies[selfie])
+                            }
+                        });
+                    return response;
+                });
+        });
 
     workbox.routing.registerRoute(
         routeData => routeData.event.request.headers.get('accept').includes('text/html'),
